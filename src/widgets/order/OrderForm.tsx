@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './OrderForm.css';
 import { Box, Button, IconButton, TextField } from '@mui/material';
 import { createOrder, updateOrder } from '../../api/order.api';
 import EditIcon from '@mui/icons-material/Edit';
+import { PatientContext } from '../../contexts/patientProvider';
 import { IOrder } from '../../models/order.model';
 
 interface IOrderDialogInfo {
@@ -18,6 +19,8 @@ function OrderForm(props: IOrderDialogInfo) {
   const [value, setValue] = React.useState(props.message);
   const [mode, setMode] = React.useState(props.mode);
 
+  const { updateOrderId } = useContext(PatientContext)!;
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
   };
@@ -25,10 +28,13 @@ function OrderForm(props: IOrderDialogInfo) {
   const handleCreateOrder = () => {
     createOrder(props.patientId, value)
       .then(response => {
-        props.created!(response.data)
+        updateOrderId(props.patientId, response.data.id);
+        props.created!(response.data);
         props.leaveCreateMode!()
       })
-      .catch()
+      .catch(error => {
+        alert(error);
+      })
       .finally(() => {
       });
   }
@@ -87,7 +93,7 @@ function OrderForm(props: IOrderDialogInfo) {
         mode === 'read'
           ? renderContent()
           : <div className='textarea_warpper'>
-            <TextField              
+            <TextField
               label={mode === 'create' ? 'create order' : 'edit order'}
               multiline
               rows={4}

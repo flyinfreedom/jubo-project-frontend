@@ -3,15 +3,23 @@ import './Patient.css';
 import { Card, CardActions, CardContent, CardMedia, Button, Box, Typography } from '@mui/material';
 
 import { IPatient } from '../../models/patient.model';
+import { PatientContext } from '../../contexts/patientProvider';
 
 interface IPatientProps {
   patient: IPatient;
-  onClickShowOrder: (patientId: string) => void;
 }
 
 function Patient(props: IPatientProps) {
+  const context = React.useContext(PatientContext);
+
+  if (!context) {
+    throw new Error('patientContext is null');
+  }
+  
+  const { handleShowOrder } = context;
+
   const handleClickOpen = () => {
-    props.onClickShowOrder(props.patient.id);
+    handleShowOrder(props.patient.id);
   };
 
   return (

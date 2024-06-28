@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './OrderDialog.css';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -11,27 +11,25 @@ import { Button, IconButton } from '@mui/material';
 import Loader from '../../components/loader/Loader';
 import { IOrder } from '../../models/order.model';
 import OrderForm from './OrderForm';
+import { PatientContext } from '../../contexts/patientProvider';
 
 interface IOrderDialogInfo {
-  open: boolean;
   patientId: string;
   name: string;
-  orderIds: Array<string> | undefined;
-  onAddOrder: (orderIds: Array<string>) => void;
-  onCloseDialog: () => void;
 }
 
 function OrderDialog(props: IOrderDialogInfo) {
-  const [open] = useState(props.open);
+  const context = useContext(PatientContext)!;
+  const { openDialog, selectedPatient, closeDialog } = context;
   const [createMode, setCreateMode] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
-  const [orderIds] = useState(props.orderIds);
-  const [orders, setOrders] = useState<Array<IOrder>>([]);
+  const [orders, setOrders] = useState<IOrder[]>([]);
 
   useEffect(() => {
-    setLoadingStatus(true);
-    !!orderIds && orderIds.length !== 0
-      ? searchOrder(orderIds)
+    const orderIds: string[] = selectedPatient?.orderId?.split(',').filter(id => id !== '') ?? [];
+    if (orderIds.length !== 0) {
+      setLoadingStatus(true);
+      searchOrder(orderIds)
         .then(response => {
           setOrders((response.data as IOrder[]).sort((a, b) => +a.id - +b.id));
         })
@@ -40,27 +38,27 @@ function OrderDialog(props: IOrderDialogInfo) {
         })
         .finally(() => {
           setLoadingStatus(false);
-        })
-      : setLoadingStatus(false);
-  }, [orderIds, props.open, props.orderIds]);
+        });
+    }
+  }, [selectedPatient, selectedPatient?.orderId]);
 
   const handleCloseDialog = () => {
+    closeDialog();
     setCreateMode(false);
-    props.onCloseDialog();
   };
 
   const handleLeaveCreateMode = () => {
     setCreateMode(false);
   }
 
-  const handleCreated = (order: IOrder) => {
-    orders.push(order);
-    props.onAddOrder(orders.map(o => o.id));
+  const pushOrder = (newOrder: IOrder) => {
+    orders.push(newOrder);
+    setOrders(orders);
   }
 
   return <Dialog
     fullWidth={true}
-    open={open}
+    open={openDialog}
     maxWidth='lg'
     onClose={handleCloseDialog}
   >
@@ -81,12 +79,12 @@ function OrderDialog(props: IOrderDialogInfo) {
       {
         loadingStatus
           ? <div className='loader-wrapper'><Loader /></div>
-          : orders.length !== 0 
+          : orders.length !== 0
             ? orders.map(order => <OrderForm key={order.id} orderId={order.id} mode={'read'} patientId={props.patientId} message={order.message}></OrderForm>)
             : !createMode && <span className="tip">Please click the + in the upper right corner to add a new medical order.</span>
       }
       {
-        createMode && <OrderForm orderId={null} mode={'create'} patientId={props.patientId} message={''} leaveCreateMode={handleLeaveCreateMode} created={handleCreated}></OrderForm>
+        createMode && <OrderForm orderId={null} mode={'create'} patientId={props.patientId} message={''} leaveCreateMode={handleLeaveCreateMode} created={pushOrder}></OrderForm>
       }
     </DialogContent>
     <DialogActions>
