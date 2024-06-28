@@ -1,6 +1,6 @@
 # 住民與醫囑專案 - 前端
 
-使用 React, Typescript, Material UI
+使用 React, Typescript, Material UI, NodeJS v20.15.0
 
 ## 注意事項
 
