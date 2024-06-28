@@ -1,0 +1,25 @@
+.order_message {
+    padding: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #ccc;
+}
+
+.flex {
+    display: flex;
+    justify-content: left; 
+    align-items: top;
+    text-align: left;
+}
+
+.flexible {
+    flex: 1 1 auto;
+    padding: 8px 0px;
+}
+
+.function {
+    max-width: 40px;
+}
+
+.textarea_warpper {
+    margin-bottom: 24px !important;
+}

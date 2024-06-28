@@ -1,0 +1,16 @@
+.patient_card {
+    flex: 1 1 auto;
+}
+
+@media (max-width: 600px) {
+    .patient_card {
+        flex: 1 1 calc(50% - 20px);
+    }
+}
+
+.loader-wrapper {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    text-align: center;
+}
