@@ -4,32 +4,28 @@ import { Box, Button, IconButton, TextField } from '@mui/material';
 import { createOrder, updateOrder } from '../../api/order.api';
 import EditIcon from '@mui/icons-material/Edit';
 import { PatientContext } from '../../contexts/patientProvider';
-import { IOrder } from '../../models/order.model';
 
 interface IOrderDialogInfo {
   mode: 'read' | 'create' | 'edit';
-  orderId: string | null;
-  patientId: string;
+  orderId?: string;
   message: string;
   leaveCreateMode?: () => void;
-  created?: (order: IOrder) => void;
 }
 
 function OrderForm(props: IOrderDialogInfo) {
   const [value, setValue] = React.useState(props.message);
   const [mode, setMode] = React.useState(props.mode);
 
-  const { updateOrderId } = useContext(PatientContext)!;
+  const { pushOrder, selectedPatient } = useContext(PatientContext)!;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
   };
 
   const handleCreateOrder = () => {
-    createOrder(props.patientId, value)
+    createOrder(selectedPatient!.id, value)
       .then(response => {
-        updateOrderId(props.patientId, response.data.id);
-        props.created!(response.data);
+        pushOrder(response.data);
         props.leaveCreateMode!()
       })
       .catch(error => {

@@ -1,39 +1,29 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import './App.css';
 import Patient from './widgets/patient/Patient';
-import { IPatient } from './models/patient.model';
 import OrderDialog from './widgets/order/OrderDialog';
 import { PatientContext, PatientProvider } from './contexts/patientProvider';
 
 
 function App() {
-  const context = useContext(PatientContext)!;
-
-  const { patients, selectedPatient, openDialog } = context;
-
-  const handleOrderIdOfPatient = (orderIds: Array<string>) => {
-    selectedPatient!.orderId = orderIds.join(',');
-  }
+  const patientContext = useContext(PatientContext)!;
+  const { patients } = patientContext;
 
   return (
     <div className="App">
-        <React.Fragment>
-          {
-            patients.map(patient => (
-              <Patient key={patient.id} patient={patient} />
-            ))
-          }
-          {
-            !!selectedPatient && <OrderDialog
-              name={selectedPatient.name}
-              patientId={selectedPatient.id}/>
-          }
-        </React.Fragment>
+      <React.Fragment>
+        {
+          patients.map(patient => (
+            <Patient key={patient.id} patient={patient} />
+          ))
+        }
+        <OrderDialog />
+      </React.Fragment>
     </div>
   );
 }
 
-const wrapper = () => (  
+const wrapper = () => (
   <PatientProvider>
     <App />
   </PatientProvider>

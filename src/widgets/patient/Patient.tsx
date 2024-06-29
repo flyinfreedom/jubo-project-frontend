@@ -10,20 +10,15 @@ interface IPatientProps {
 }
 
 function Patient(props: IPatientProps) {
-  const context = React.useContext(PatientContext);
+  const context = React.useContext(PatientContext)!;
 
-  if (!context) {
-    throw new Error('patientContext is null');
-  }
-  
-  const { handleShowOrder } = context;
+  const { openDialog } = context;
 
   const handleClickOpen = () => {
-    handleShowOrder(props.patient.id);
+    openDialog(props.patient);
   };
 
   return (
-    <React.Fragment>
       <Card className="patient_card">
         <CardMedia
           sx={{ height: 200 }}
@@ -41,7 +36,6 @@ function Patient(props: IPatientProps) {
           </Box>
         </CardActions>
       </Card>
-    </React.Fragment>
   );
 }
 

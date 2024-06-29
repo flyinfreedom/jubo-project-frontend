@@ -2,13 +2,17 @@ import React, { createContext, useState, ReactNode, FC, useEffect } from 'react'
 import { IPatient } from '../models/patient.model';
 import { Backdrop, CircularProgress } from '@mui/material';
 import { getPatients } from '../api/patient.api';
+import { IOrder } from '../models/order.model';
+import { searchOrder } from '../api/order.api';
 
 interface PatientContextType {
   patients: IPatient[];
-  selectedPatient: IPatient | null;
-  openDialog: boolean;
-  updateOrderId: (patientId: string, orderIds: string) => void;
-  handleShowOrder: (patientId: string) => void;
+  selectedPatient: IPatient | null;  
+  open: boolean;
+  loading: boolean;
+  orders: IOrder[];
+  pushOrder: (order: IOrder) => void;
+  openDialog: (patient: IPatient) => void;
   closeDialog: () => void;
 }
 
@@ -21,8 +25,10 @@ interface PatientProviderProps {
 const PatientProvider: FC<PatientProviderProps> = ({ children }) => {
   const [patients, setPatients] = useState<IPatient[]>([]);
   const [openBackdrop, setopenBackdrop] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<IPatient | null>(null);
-  const [openDialog, setOpenDialog] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [orders, setOrders] = useState<IOrder[]>([]);
   
   useEffect(() => {
     setopenBackdrop(true);
@@ -38,27 +44,44 @@ const PatientProvider: FC<PatientProviderProps> = ({ children }) => {
       });
   }, []);
 
-  const updateOrderId = (patientId: string, newOrderId: string) => {
+  const pushOrder = (order: IOrder) => {
+    orders.push(order);
+    setOrders(orders);
+
     const orderIds = (selectedPatient!.orderId ?? '').split(',').filter(id => id !== '');
-    orderIds.push(newOrderId);
+    orderIds.push(order.id);
     setPatients(prevPatients => prevPatients.map(patient => 
-      patient.id === patientId ? { ...patient, orderId: orderIds.join(',') } : patient
+      patient.id === selectedPatient!.id ? { ...patient, orderId: orderIds.join(',') } : patient
     ));
   }
 
-  const handleShowOrder = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId);
-    setSelectedPatient(patient!);
-    setOpenDialog(true);
+  const openDialog = (patient: IPatient) => {
+    setOpen(true);
+    setSelectedPatient(patient);
+
+    if (!!patient.orderId) {
+      setLoading(true);
+      searchOrder(patient.orderId.split(',').filter(id => id !== ''))
+          .then(response => {
+              setOrders(response.data);
+          })
+          .catch(error => {
+              alert(error);
+          })
+          .finally(() => {
+              setLoading(false);
+          });
   }
+}
 
   const closeDialog = () => {
     setSelectedPatient(null);
-    setOpenDialog(false);
+    setOrders([]);
+    setOpen(false);
   }
   
   return (
-    <PatientContext.Provider value={{ patients, selectedPatient, openDialog, updateOrderId, handleShowOrder, closeDialog }}>
+    <PatientContext.Provider value={{ patients, selectedPatient, open, loading, orders, pushOrder, openDialog, closeDialog }}>
       {children}
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
