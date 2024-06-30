@@ -14,12 +14,28 @@ interface IOrderDialogInfo {
 
 function OrderForm(props: IOrderDialogInfo) {
   const [value, setValue] = React.useState(props.message);
+  const [isTouched, setIsTouched] = React.useState(false);
   const [mode, setMode] = React.useState(props.mode);
+  const [helperText, setHelperText] = React.useState('醫囑不可為空值');
 
   const { pushOrder, selectedPatient } = useContext(PatientContext)!;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHelperText('');
+    !isTouched && setIsTouched(true);
+    const tempValue = event.target.value;
+    if(tempValue === '') {
+      setHelperText('醫囑不可為空值');
+    }
+
+    if(tempValue.length > 50) {
+      setHelperText('醫囑做多為50個字元');
+    }
     setValue(event.target.value);
+  };
+
+  const handleBlur = () => {
+    setIsTouched(true);
   };
 
   const handleCreateOrder = () => {
@@ -96,14 +112,17 @@ function OrderForm(props: IOrderDialogInfo) {
               variant="outlined"
               value={value}
               onChange={handleChange}
+              onBlur={handleBlur}
               fullWidth
               placeholder='please type order content.'
+              error={isTouched && helperText !== ''}
+              helperText={isTouched && helperText}
             />
             <div>
               {
                 mode === 'create'
-                  ? <Button size="small" variant="contained" sx={{ marginTop: 1 }} onClick={handleCreateOrder}>create</Button>
-                  : <Button size="small" variant="contained" sx={{ marginTop: 1 }} onClick={handleUpdateOrder}>update</Button>
+                  ? <Button size="small" variant="contained" sx={{ marginTop: 1 }} disabled={helperText !== ''} onClick={handleCreateOrder}>create</Button>
+                  : <Button size="small" variant="contained" sx={{ marginTop: 1 }} disabled={helperText !== ''} onClick={handleUpdateOrder}>update</Button>
               }
               <Button size="small" variant="outlined" sx={{ marginTop: 1, marginLeft: 1 }} onClick={handleCancel}>cancel</Button>
             </div>
