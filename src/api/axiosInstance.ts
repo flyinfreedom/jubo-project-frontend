@@ -30,6 +30,11 @@ axiosInstance.interceptors.response.use(
       alert('您的Token已過期，請重新登入');
       return;
     }
+
+    if (error.response && error.response.status > 700 && error.response.status < 800) {
+      alert(error.response.data!.message);
+      return;
+    }
     return Promise.reject(error);
   }
 );
